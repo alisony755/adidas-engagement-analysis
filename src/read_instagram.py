@@ -53,8 +53,6 @@ for filename in os.listdir(ig_folder):
                 'video_view_count': node.get('video_view_count'),
                 'caption_text': caption_text,
                 'comment_count': edge_media_to_comment.get('count'),
-                'location_id': location.get('id'),
-                'location_name': location.get('name'),
                 'is_affiliate': node.get('is_affiliate'),
                 'is_paid_partnership': node.get('is_paid_partnership'),
                 'comments_disabled': node.get('comments_disabled'),
@@ -74,3 +72,6 @@ for filename in os.listdir(ig_folder):
 
 # Create a DataFrame
 instagram_df = pd.DataFrame(all_ig_posts)
+
+# Print first few rows of DataFrame
+print(instagram_df.head())
