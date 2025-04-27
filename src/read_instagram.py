@@ -50,7 +50,6 @@ for filename in os.listdir(ig_folder):
                 'tagged_users': tagged_users,
                 'tagged_usernames': tagged_usernames,
                 'verified_users': verified_users,
-                'engagement_count': node.get('engagement_count'),  # This might not exist, might need calculation if not present
                 'video_view_count': node.get('video_view_count'),
                 'caption_text': caption_text,
                 'comment_count': edge_media_to_comment.get('count'),
