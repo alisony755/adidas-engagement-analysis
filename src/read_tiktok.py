@@ -1,52 +1,52 @@
+import os
 import json
 import pandas as pd
-import os
-import re
 from datetime import datetime
 
 # Folder containing TikTok data
 tiktok_folder = 'data/tiktok'
 
-# Initialize an empty list to collect records
-all_records = []
+# List to store all post data
+all_tiktok_posts = []
 
-# Loop through all files in the folder
+# Loop through each file in the folder
 for filename in os.listdir(tiktok_folder):
-    if filename.endswith('.json'):
+    if filename.endswith('.json') and filename.startswith('raw_'):
         filepath = os.path.join(tiktok_folder, filename)
         
-        # Extract the datetime info from filename
-        match = re.search(r'(\d{2})-(\d{2})-(\d{4})-(\d{2})', filename)
-        if match:
-            month, day, year, hour = match.groups()
-            file_datetime = datetime(int(year), int(month), int(day), int(hour))
-        else:
-            continue  # Skip files that do not match the expected filename pattern
-        
-        # Load the JSON file
         with open(filepath, 'r') as f:
             data = json.load(f)
         
-        # Skip files with no "data" field or empty data
-        if 'data' not in data or not data['data']:
+        posts = data.get('data', [])
+
+        # Skip empty files (when posts is an empty list)
+        if not posts:
             continue
-        
-        # Process each post in the "data" field
-        for post in data['data']:
-            # Extract relevant features
-            record = {
-                'file_datetime': file_datetime,  # from filename
-                'create_time': post.get('create_time'),
-                'author': post.get('added_sound_music_info', {}).get('author'),
-                'follower_count': post.get('follower_count'),
-                'following_count': post.get('following_count'),
-                'favoriting_count': post.get('favoriting_count'),
-                'total_favorited': post.get('total_favorited')
+
+        # Extract datetime from filename
+        _, date_str, time_str = filename.replace('.json', '').split('_')
+        file_datetime = datetime.strptime(f'{date_str}-{time_str}', '%m-%d-%Y-%H-%M-%S')
+
+        for post in posts:
+            author_info = post.get('author', {})
+            author_stats = author_info.get('stats', {})
+
+            post_info = {
+                'file_datetime': file_datetime,
+                'create_time': post.get('create_time', None),
+                'author': post.get('added_sound_music_info', {}).get('author', None),
+                'follower_count': author_stats.get('followerCount', None),
+                'following_count': author_stats.get('followingCount', None),
+                'favoriting_count': post.get('favoriting_count', None),  
+                'total_favorited': author_stats.get('heart', None),
             }
-            all_records.append(record)
+            all_tiktok_posts.append(post_info)
 
-# Create DataFrame
-tiktok_df = pd.DataFrame(all_records)
+# Create a DataFrame
+tiktok_df = pd.DataFrame(all_tiktok_posts)
 
-# Print the head of the DataFrame
-print(tiktok_df.head())
+# Sort the dataframe by 'file_datetime'
+tiktok_df = tiktok_df.sort_values(by='file_datetime')
+
+# Print first few rows
+print(tiktok_df.head(50))
